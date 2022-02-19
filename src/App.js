@@ -10,18 +10,19 @@ import SearchItem from "./SearchItem";
 
 //   // this is react main features, ability to render a state without reloading the entire app
 
-
 function App() {
-  const [items, setItems] = useState(JSON.parse(localStorage.getItem('shoppinglist')));
-  const [newItem, setNewItem] = useState('')
-  const [search, setSearch] = useState('')
+  const [items, setItems] = useState(
+    JSON.parse(localStorage.getItem("shoppinglist"))
+  );
+  const [newItem, setNewItem] = useState("");
+  const [search, setSearch] = useState("");
 
   function setAndSaveItems(newItems) {
     setItems(newItems);
-    localStorage.setItem('shoppinglist', JSON.stringify(newItems));
+    localStorage.setItem("shoppinglist", JSON.stringify(newItems));
   }
 
-  function addItem (item) {
+  function addItem(item) {
     const id = items.length ? items[items.length - 1].id + 1 : 1;
     const myNewItem = { id, checked: false, item };
     const listItems = [...items, myNewItem];
@@ -29,36 +30,39 @@ function App() {
   }
 
   function handleCheck(id) {
-    const listItems = items.map((item) => item.id === id ? { ...item, checked: !item.checked } : item);
+    const listItems = items.map((item) =>
+      item.id === id ? { ...item, checked: !item.checked } : item
+    );
     setAndSaveItems(listItems);
   }
 
-  function handleDelete (id) {
+  function handleDelete(id) {
     const listItems = items.filter((item) => item.id !== id);
     setAndSaveItems(listItems);
   }
 
-  function handleSubmit(e)  {
+  function handleSubmit(e) {
     e.preventDefault();
     if (!newItem) return;
     addItem(newItem);
-    setNewItem('');
+    setNewItem("");
   }
 
   return (
     <div className="App">
       <Header title="Grocery List" />
-     
+
       <AddItem
         newItem={newItem}
         setItem={setNewItem}
         handleSubmit={handleSubmit}
       />
-      <SearchItem search={search}
-      setSearch={setSearch} />
-  
+      <SearchItem search={search} setSearch={setSearch} />
+
       <Content
-        items={items.filter(item => ((item.item).toLowerCase()).includes (search.toLowerCase()))}
+        items={items.filter((item) =>
+          item.item.toLowerCase().includes(search.toLowerCase())
+        )}
         handleCheck={handleCheck}
         handleDelete={handleDelete}
       />
