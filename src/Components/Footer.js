@@ -1,7 +1,6 @@
 import React from 'react'
 
 function Footer({len}) {
-    const today = new Date()
      
   return (
     <footer>

@@ -4,6 +4,7 @@ import Footer from "./Components/Footer";
 import { useState, useEffect } from "react";
 import AddItem from "./Components/AddItem";
 import SearchItem from "./Components/SearchItem";
+import RequestsApi from "./Components/RequestsApi";
 
 //INSTALLATION GUILD
 // Only use npm to install a package when you want that package to be added to your dependencies(npm install package)
@@ -45,23 +46,58 @@ function App() {
    
   }, []);
 
-  function addItem(item) {
+  async function addItem(item) {
     const id = items.length ? items[items.length - 1].id + 1 : 1;
     const myNewItem = { id, checked: false, item };
     const listItems = [...items, myNewItem];
     setItems(listItems);
+
+    //constructing transaction data
+    const ReqBody = {
+      method:"POST",
+      headers:{
+        'Content-Type':"application/json"
+      },
+      body:JSON.stringify(myNewItem)
+    }
+
+    //sending actual request
+    const reqResult = await RequestsApi(MAIN_API_URL, ReqBody);
+    if (reqResult) setFetchError(reqResult)
+
   }
 
-  function handleCheck(id) {
+  async function handleCheck(id) {
     const listItems = items.map((item) =>
       item.id === id ? { ...item, checked: !item.checked } : item
     );
     setItems(listItems);
+    //handle check item, this will update the state in the db
+    const checkItem = listItems.filter((items) => items.id === id);
+    
+    const patchBody = {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ checked: checkItem[0].checked }),
+    };
+    const PatchURL = `${MAIN_API_URL}/${id}`;
+    const patchResponse = await RequestsApi(PatchURL, patchBody);
+    if (patchResponse) setFetchError(patchResponse)
+
   }
 
-  function handleDelete(id) {
+  async function handleDelete(id) {
     const listItems = items.filter((item) => item.id !== id);
     setItems(listItems);
+
+    const deleteBody ={
+      method:"DELETE"
+    };
+    const deleteURL = `${MAIN_API_URL}/${id}`;
+    const deleteRequest = await RequestsApi(deleteURL, deleteBody);
+    if (deleteRequest) setFetchError(deleteRequest)
   }
 
   function handleSubmit(e) {
