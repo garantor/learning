@@ -1,44 +1,67 @@
 import Header from "./Components/Header";
 import Content from "./Components/Content";
 import Footer from "./Components/Footer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddItem from "./Components/AddItem";
-import SearchItem from "./SearchItem";
+import SearchItem from "./Components/SearchItem";
 
-// function App() {
+//INSTALLATION GUILD
+// Only use npm to install a package when you want that package to be added to your dependencies(npm install package)
+// use npx when u want to use it for just development (npx install package)
 //   //Accepting args, the best way to accept agrs in html elemets in react is through arrow functions lik this, () => function(args)
 
 //   // this is react main features, ability to render a state without reloading the entire app
 
 function App() {
+  const MAIN_API_URL = "http://localhost:3500/items";
   const [items, setItems] = useState(
-    JSON.parse(localStorage.getItem("shoppinglist"))
+    JSON.parse(localStorage.getItem("shoppinglist")) || []
   );
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
+  const [fetchError, setFetchError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true)
 
-  function setAndSaveItems(newItems) {
-    setItems(newItems);
-    localStorage.setItem("shoppinglist", JSON.stringify(newItems));
-  }
+  //useEffect is called each time the app render and is also called asycn
+  //to prevent it from been called each time an app render to only when a state change we pass in the [] at the bottom of an anonymous function inside of useeffect, useEffect will only be called with the state of that [](item) changes
+
+  useEffect(() => {
+    async function fetchItems() {
+      try {
+        const response = await fetch(MAIN_API_URL);
+        if (!response.ok) throw Error("Did not Receive expected Data");
+        const listItems = await response.json();
+        setItems(listItems);
+        setFetchError(null);
+      } catch (error) {
+        setFetchError(error.message);
+      } finally{
+        setIsLoading(false);
+      }
+    }
+    setTimeout(() => {
+      fetchItems();
+    }, 2000)
+   
+  }, []);
 
   function addItem(item) {
     const id = items.length ? items[items.length - 1].id + 1 : 1;
     const myNewItem = { id, checked: false, item };
     const listItems = [...items, myNewItem];
-    setAndSaveItems(listItems);
+    setItems(listItems);
   }
 
   function handleCheck(id) {
     const listItems = items.map((item) =>
       item.id === id ? { ...item, checked: !item.checked } : item
     );
-    setAndSaveItems(listItems);
+    setItems(listItems);
   }
 
   function handleDelete(id) {
     const listItems = items.filter((item) => item.id !== id);
-    setAndSaveItems(listItems);
+    setItems(listItems);
   }
 
   function handleSubmit(e) {
@@ -58,14 +81,21 @@ function App() {
         handleSubmit={handleSubmit}
       />
       <SearchItem search={search} setSearch={setSearch} />
-
-      <Content
-        items={items.filter((item) =>
-          item.item.toLowerCase().includes(search.toLowerCase())
+      <main>
+        {isLoading && <p> Loading items ....</p>}
+        {fetchError && (
+          <p style={{ color: "red" }}> {`Error: ${fetchError}`}</p>
         )}
-        handleCheck={handleCheck}
-        handleDelete={handleDelete}
-      />
+        {!fetchError && !isLoading &&
+        <Content
+          items={items.filter((item) =>
+            item.item.toLowerCase().includes(search.toLowerCase())
+          )}
+          handleCheck={handleCheck}
+          handleDelete={handleDelete}
+        />
+          }
+      </main>
       <Footer length={items.length} />
     </div>
   );
